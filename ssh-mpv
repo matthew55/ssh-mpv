@@ -9,9 +9,8 @@ vars=false  # remove this line after vars are set
 user=''     # username to use when logging in via ssh
 server=''   # address of remote server
 port='22'   # port to use to connect to server via ssh (default 22)
-dir=''      # directory to search on the server
-edit=''     # editor to use for vipe
-jumphost_required=false # set to true if you need to use a jumphost. e.g. if your remote server is not directly reachable
+dir='' # directory to search on the server
+jumphost_required="" # set to true if you need to use a jumphost. e.g. if your remote server is not directly reachable
 jumphost='' # enter user@server.fqdn you want to use as jumphost (if needed)
 
 # check that the vars have been set
@@ -23,9 +22,8 @@ fi
 # display usage info
 usage () {
   echo "USAGE: $(basename $0) [opt] <search...>"
+  echo "  -h list this help page"
   echo "  -l list remote videos to stdout"
-  echo "  -v view remote listing in $edit"
-  echo "  -p play listing from stdin"
 }
 
 # list remote videos from ssh server
@@ -34,13 +32,13 @@ list () {
   if [ -n "$jumphost_required" ]; then
     ssh $user@$server -J $jumphost "find $dir -type f \
       | sed 's,$dir,,' \
-      | grep -E '(avi|mp4|mkv)$' \
+      | grep -E '(avi|mp4|mkv|webm|ts)$' \
       | grep -i '$1' \
       | sort"
   else
     ssh -p $port $user@$server "find $dir -type f \
       | sed 's,$dir,,' \
-      | grep -E '(avi|mp4|mkv)$' \
+      | grep -E '(avi|mp4|mkv|webm|ts)$' \
       | grep -i '$1' \
       | sort"
   fi
@@ -56,36 +54,30 @@ play () {
   fi
 }
 
-if [ "$1" == '' ]; then
+if [ "$1" == '-h' ]; then
   usage
-
-elif [ "$1" == '-v' ]; then
-  echo "$(list ${*:2})" | EDITOR=$edit vipe
-
+elif [ "$1" == '--help' ]; then
+  usage
 elif [ "$1" == '-l' ]; then
-  list "${*:2}"
-
-elif [ "$1" == '-p' ]; then
+	list "${*:2}"
+else
+  
   if [ -n "$jumphost_required" ]; then
     ssh -L 9999:$server:22 $jumphost >/dev/null 2>/dev/null sleep 3600 &
     pid=$!
   fi
-  sleep 1
 
-  while read line; do
-    play "$line"
-  done < /dev/stdin
+  choice="$(list "$@" | fzf --height=~100%)"
+  play "$choice"
 
-else
-  IFS=$'\n' # set newline as splitter for select loop
-  PS3='>> ' # set '>> ' as select menu prompt
-
-  select video in $(list "$@"); do
-    play "$video"
-    exit
-  done
+  # Uncomment everything below if you don't want to use fzf.
+  #IFS=$'\n' # set newline as splitter for select loop
+  #PS3='>> ' # set '>> ' as select menu prompt
+  #select video in $(list "$@"); do
+  #  play "$video"
+  #  exit
+  #done
 
   # no match found on remote ssh server
-  echo 'no match'
-
+  #echo 'no match'
 fi
