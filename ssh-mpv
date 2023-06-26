@@ -6,10 +6,10 @@ trap 'echo interrupted; exit' INT
 
 # script variables
 vars=false  # remove this line after vars are set
-user='matthew'     # username to use when logging in via ssh
-server='192.168.50.171'   # address of remote server
+user=''     # username to use when logging in via ssh
+server=''   # address of remote server
 port='22'   # port to use to connect to server via ssh (default 22)
-dir='/mnt/universal-files/recording-archive/mma' # directory to search on the server
+dir='' # directory to search on the server
 jumphost_required="" # set to true if you need to use a jumphost. e.g. if your remote server is not directly reachable
 jumphost='' # enter user@server.fqdn you want to use as jumphost (if needed)
 
