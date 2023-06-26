@@ -6,10 +6,10 @@ trap 'echo interrupted; exit' INT
 
 # script variables
 vars=false  # remove this line after vars are set
-user=''     # username to use when logging in via ssh
-server=''   # address of remote server
+user='matthew'     # username to use when logging in via ssh
+server='192.168.50.171'   # address of remote server
 port='22'   # port to use to connect to server via ssh (default 22)
-dir='' # directory to search on the server
+dir='/mnt/universal-files/recording-archive/mma' # directory to search on the server
 jumphost_required="" # set to true if you need to use a jumphost. e.g. if your remote server is not directly reachable
 jumphost='' # enter user@server.fqdn you want to use as jumphost (if needed)
 
@@ -32,13 +32,13 @@ list () {
   if [ -n "$jumphost_required" ]; then
     ssh $user@$server -J $jumphost "find $dir -type f \
       | sed 's,$dir,,' \
-      | grep -E '(avi|mp4|mkv|webm|ts)$' \
+      | grep -Ei '(avi|mp4|mkv|webm|ts)$' \
       | grep -i '$1' \
       | sort"
   else
     ssh -p $port $user@$server "find $dir -type f \
       | sed 's,$dir,,' \
-      | grep -E '(avi|mp4|mkv|webm|ts)$' \
+      | grep -Ei '(avi|mp4|mkv|webm|ts)$' \
       | grep -i '$1' \
       | sort"
   fi
